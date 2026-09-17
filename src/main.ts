@@ -1,5 +1,9 @@
 import { Application } from "pixi.js";
 import { StateMachine } from './state/machine';
+import * as AssetsManager from './systems/assets';
+
+import { GameplayState } from './state/list/gameplay';
+
 
 async function main(): Promise<void> {
 
@@ -11,9 +15,10 @@ async function main(): Promise<void> {
 		backgroundColor: 0x000000
 	});
 	document.body.appendChild(app.canvas);
+	await AssetsManager.load();
 
 	// Game Loop and State Machine
-	const stateMachine = new StateMachine(app);
+	const stateMachine = new StateMachine(new GameplayState(app));
 	app.ticker.add((ticker) => {
 		let delta = ticker.deltaMS / 1000;
 		stateMachine.run(delta);
