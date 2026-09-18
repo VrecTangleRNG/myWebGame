@@ -6,5 +6,6 @@ export class Player {
 	constructor(app: Application) {
 		this.sprite = Sprite.from("player");
 		app.stage.addChild(this.sprite);
+		this.sprite.zIndex = 10;
 	}
 }

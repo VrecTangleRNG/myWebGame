@@ -15,6 +15,7 @@ async function main(): Promise<void> {
 		backgroundColor: 0x000000
 	});
 	document.body.appendChild(app.canvas);
+	app.stage.sortableChildren = true;
 	await AssetsManager.load();
 
 	// Game Loop and State Machine
