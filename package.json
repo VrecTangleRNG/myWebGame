@@ -4,9 +4,9 @@
   "description": "A web game about AIMING &amp; shooting enemies with your gun",
   "main": "index.js",
   "scripts": {
-	  "dev": "vite",
-	  "build": "tsc && vite build",
-	  "preview": "vite preview"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
   "repository": {
     "type": "git",
@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/VrecTangleRNG/myWebGame#readme",
   "dependencies": {
+    "@tweenjs/tween.js": "^25.0.0",
     "pixi.js": "^8.20.1"
   },
   "devDependencies": {

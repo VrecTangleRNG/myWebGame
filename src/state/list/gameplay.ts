@@ -43,6 +43,7 @@ export class GameplayState implements State {
 	}
 
 	update(delta: number): boolean {
+		this.gun.update(delta);
 		return true;
 	}
 
