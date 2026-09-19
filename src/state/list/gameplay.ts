@@ -39,7 +39,7 @@ export class GameplayState implements State {
 			this.player.sprite.position.y
 		); 
 
-		this.background.zIndex = 9;
+		this.background.zIndex = 0;
 	}
 
 	update(delta: number): boolean {

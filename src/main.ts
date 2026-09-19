@@ -1,5 +1,6 @@
 import { Application } from "pixi.js";
 import { StateMachine } from './state/machine';
+import * as Input from './systems/inputs';
 import * as AssetsManager from './systems/assets';
 
 import { GameplayState } from './state/list/gameplay';
@@ -19,6 +20,7 @@ async function main(): Promise<void> {
 	await AssetsManager.load();
 
 	// Game Loop and State Machine
+	Input.initialize(app);
 	const stateMachine = new StateMachine(new GameplayState(app));
 	app.ticker.add((ticker) => {
 		let delta = ticker.deltaMS / 1000;
