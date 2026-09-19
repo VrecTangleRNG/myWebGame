@@ -2,14 +2,18 @@ import { Application, Sprite } from 'pixi.js';
 import { Tween, Easing } from '@tweenjs/tween.js';
 import { yoyo } from './../systems/utils';
 
-import * as Input from './../systems/inputs';
+import { ShotType, BulletContainer } from './bullet';
 
 
 export class Gun {
 	// Gun properties
 	public sprite: Sprite;
-	private aimSpeed: number;
 	private aimingMovement: Tween;
+	private aimSpeed: number;
+	private bulletSize: number;
+	private bulletSpeed: number;
+	private shotType: ShotType;
+	private magazine: BulletContainer;
 
 	constructor(
 		app: Application,
@@ -19,6 +23,17 @@ export class Gun {
 		this.sprite.zIndex = 11;
 		this.sprite.angle = 0;
 		app.stage.addChild(this.sprite);
+
+		// TODO: Make this customizable later
+		this.bulletSize = 1.5;
+		this.bulletSpeed = 2000;
+		this.shotType = ShotType.Precise;
+		this.magazine = new BulletContainer(
+			app, 0, 0,
+			this.bulletSize,
+			this.bulletSpeed,
+			this.shotType
+		)
 
 		this.aimSpeed = aimSpeed;
 		this.aimingMovement = new Tween(this.sprite)
@@ -30,8 +45,10 @@ export class Gun {
 
 	update(delta: number): void {
 		this.aimingMovement.update();
-		Input.onPointerDown(() => {
-			console.log("I've been clicked!");
-		})
+		this.magazine.update(
+			delta,
+			this.sprite.angle,
+			this.sprite.x, this.sprite.y
+		);
 	}
 }
