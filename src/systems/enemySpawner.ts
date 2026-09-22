@@ -23,14 +23,26 @@ export class EnemySpawner {
 		this.mode = mode;
 		switch (this.mode) {
 			case SpawnMode.Normal:
-				this.spawnRate = 2;
+				this.spawnRate = 1.5;
 				this.spawnPoints.push(
 					{
 						x: app.screen.width,
 						y: app.screen.height
-					}
+					},
+					{
+						x: app.screen.width,
+						y: app.screen.height - 150
+					},
+					{
+						x: app.screen.width,
+						y: app.screen.height - 300
+					},
+					{
+						x: app.screen.width,
+						y: app.screen.height - 450
+					},
 				);
-				this.targetX.push(200);
+				this.targetX.push(400, 500, 600, 700, 800);
 				break;
 			default: break;
 		}
@@ -39,11 +51,13 @@ export class EnemySpawner {
 	update(delta: number) {
 		this.currentSpawnDuration += delta;
 		if (this.currentSpawnDuration >= this.spawnRate) {
+			let randomY = Math.floor(Math.random() * this.spawnPoints.length);
+			let randomTargetX = Math.floor(Math.random() * this.targetX.length);
 			let enemy = new Enemy(
 				this.app,
 				this.spawnPoints[0].x,
-				this.spawnPoints[0].y,
-				this.targetX[0]
+				this.spawnPoints[randomY].y,
+				this.targetX[randomTargetX]
 			)
 			this.enemies.push(enemy);
 			this.currentSpawnDuration = 0;
