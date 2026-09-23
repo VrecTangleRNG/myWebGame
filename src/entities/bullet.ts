@@ -1,6 +1,8 @@
-import { Application, Sprite } from 'pixi.js';
+import { Application, Point, Sprite } from 'pixi.js';
 
 import * as Input from './../systems/inputs';
+import { exportedObjects } from "./../state/list/gameplay";
+import { Enemy } from './enemy';
 
 
 export enum ShotType {
@@ -15,7 +17,8 @@ type BulletProperties = {
 	size: number,
 	speed: number,
 	angle: number,
-	type: ShotType
+	type: ShotType,
+	fromPlayer: boolean
 }
 
 export class BulletContainer {
@@ -28,7 +31,8 @@ export class BulletContainer {
 		yOrigin: number,
 		size: number,
 		speed: number,
-		type: ShotType
+		type: ShotType,
+		fromPlayer: boolean
 	) {
 		this.properties = {
 			app: app,
@@ -36,12 +40,16 @@ export class BulletContainer {
 			size: size,
 			speed: speed,
 			angle: 0,
-			type: type
+			type: type,
+			fromPlayer: fromPlayer
 		};
-		Input.onPointerDown(() => {
-			let bullet: Bullet = new Bullet(this.properties);
-			this.bullets.push(bullet);
-		});
+
+		if (fromPlayer) {
+			Input.onPointerDown(() => {
+				let bullet: Bullet = new Bullet(this.properties);
+				this.bullets.push(bullet);
+			});
+		}
 	}
 
 	update(
@@ -62,6 +70,8 @@ export class BulletContainer {
 class Bullet {
 	private properties: BulletProperties;
 	private sprite: Sprite;
+	private wasShotByPlayer: boolean;
+	private pointShape: Point;
 
 	constructor(properties: BulletProperties) {
 		this.properties = { ...properties };
@@ -74,11 +84,31 @@ class Bullet {
 		this.sprite.scale.set(this.properties.size);
 		this.sprite.position.x = this.properties.from.x;
 		this.sprite.position.y = this.properties.from.y;
+
+		this.wasShotByPlayer = this.properties.fromPlayer;
+		this.pointShape = new Point(this.sprite.x, this.sprite.y);
 	}
 
 	update(delta: number) {
 		let radians = this.properties.angle * Math.PI / 180;
 		this.sprite.position.x += Math.cos(radians) * this.properties.speed * delta;
 		this.sprite.position.y += Math.sin(radians) * this.properties.speed * delta;
+		this.pointShape.set(this.sprite.x, this.sprite.y);
+
+		if (this.wasShotByPlayer) this.checkEnemyCollision();
+	}
+
+	// TODO: delete bullet when in contact with an enemy (SEE TODO BELOW)
+	private checkEnemyCollision() {
+		let enemies: Enemy[] = exportedObjects[0].getEnemyList();
+		for (let i = 0; i < enemies.length; i++) {
+			if (enemies[i].getShape().collidesPoint(this.pointShape)) {
+				enemies[i].dealDamage(2);
+			}
+		}
+	}
+
+	// TODO: implement this
+	private deleteBullet() {
 	}
 }

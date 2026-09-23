@@ -32,7 +32,8 @@ export class Gun {
 			app, 0, 0,
 			this.bulletSize,
 			this.bulletSpeed,
-			this.shotType
+			this.shotType,
+			true
 		)
 
 		this.aimSpeed = aimSpeed;

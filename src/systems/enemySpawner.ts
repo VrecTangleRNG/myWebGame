@@ -14,9 +14,7 @@ export class EnemySpawner {
 	private currentSpawnDuration: number = 0;
 	private spawnPoints: { x: number, y: number }[] = [];
 	private targetX: number[] = [];
-
-	// TODO: keep track of enemies here
-	private enemies: any[] = [];
+	private enemies: Enemy[] = [];
 
 	constructor(app: Application, mode: SpawnMode) {
 		this.app = app;
@@ -67,5 +65,9 @@ export class EnemySpawner {
 		for (let i = 0; i < this.enemies.length; i++) {
 			this.enemies[i].update(delta);
 		}
+	}
+
+	getEnemyList() {
+		return this.enemies;
 	}
 }

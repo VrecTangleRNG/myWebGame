@@ -6,6 +6,8 @@ import { Gun } from "../../entities/gun";
 import { EnemySpawner, SpawnMode } from "../../systems/enemySpawner";
 
 
+export const exportedObjects: any[] = [];
+
 export class GameplayState implements State {
 	name = "gameplay";
 	app: Application;
@@ -28,6 +30,7 @@ export class GameplayState implements State {
 
 		// Enemy spawning
 		this.enemySpawner = new EnemySpawner(app, SpawnMode.Normal);
+		exportedObjects.push(this.enemySpawner);
 	}
 
 	enter(): void {
