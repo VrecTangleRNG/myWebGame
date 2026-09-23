@@ -61,15 +61,23 @@ export class BulletContainer {
 		this.properties.angle = currentAngle;
 		this.properties.from.x = currentX;
 		this.properties.from.y = currentY;
+
 		for (let i = 0; i < this.bullets.length; i++) {
 			this.bullets[i].update(delta);
+
+			// Delete the bullet when is not flying
+			if (!this.bullets[i].isBulletFlying) {
+				this.properties.app.stage.removeChild(this.bullets[i].sprite);
+				this.bullets.splice(i, 1);
+			}
 		}
 	}
 }
 
 class Bullet {
+	sprite: Sprite;
+	isBulletFlying: boolean = true;
 	private properties: BulletProperties;
-	private sprite: Sprite;
 	private wasShotByPlayer: boolean;
 	private pointShape: Point;
 
@@ -98,17 +106,17 @@ class Bullet {
 		if (this.wasShotByPlayer) this.checkEnemyCollision();
 	}
 
-	// TODO: delete bullet when in contact with an enemy (SEE TODO BELOW)
 	private checkEnemyCollision() {
 		let enemies: Enemy[] = exportedObjects[0].getEnemyList();
 		for (let i = 0; i < enemies.length; i++) {
 			if (enemies[i].getShape().collidesPoint(this.pointShape)) {
 				enemies[i].dealDamage(2);
+				this.deleteBullet();
 			}
 		}
 	}
 
-	// TODO: implement this
 	private deleteBullet() {
+		this.isBulletFlying = false;
 	}
 }

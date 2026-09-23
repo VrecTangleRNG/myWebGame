@@ -21,8 +21,9 @@ export class Enemy {
 		this.app = app;
 
 		this.sprite = Sprite.from("player");
-		this.sprite.x = spawnX + this.sprite.width + 4;
-		this.sprite.y = spawnY - this.sprite.height;
+		this.sprite.anchor.set(0.5);
+		this.sprite.x = spawnX + this.sprite.width / 2 + 4;
+		this.sprite.y = spawnY - this.sprite.height / 2;
 		this.app.stage.addChild(this.sprite);
 
 		this.health = 2;
@@ -38,6 +39,7 @@ export class Enemy {
 
 	update(delta: number) {
 		this.moveToward.update();
+		this.shape.update();
 	}
 
 	dealDamage(attackPoint: number) {
