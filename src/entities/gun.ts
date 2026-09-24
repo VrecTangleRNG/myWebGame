@@ -1,4 +1,4 @@
-import { Application, Sprite } from 'pixi.js';
+import { Application, Sprite, Ticker } from 'pixi.js';
 import { Tween, Easing } from '@tweenjs/tween.js';
 import { yoyo } from './../systems/utils';
 
@@ -26,7 +26,7 @@ export class Gun {
 
 		// TODO: Make this customizable later
 		this.bulletSize = 1.5;
-		this.bulletSpeed = 2000;
+		this.bulletSpeed = 40;
 		this.shotType = ShotType.Precise;
 		this.magazine = new BulletContainer(
 			app, 0, 0,
@@ -44,10 +44,10 @@ export class Gun {
 			.start();
 	}
 
-	update(delta: number): void {
+	update(ticker: Ticker): void {
 		this.aimingMovement.update();
 		this.magazine.update(
-			delta,
+			ticker,
 			this.sprite.angle,
 			this.sprite.x, this.sprite.y
 		);

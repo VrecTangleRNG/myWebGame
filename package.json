@@ -20,10 +20,11 @@
   "homepage": "https://github.com/VrecTangleRNG/myWebGame#readme",
   "dependencies": {
     "@tweenjs/tween.js": "^25.0.0",
-    "pixi.js": "^8.20.1",
-    "yy-intersects": "^1.0.8"
+    "matter-js": "^0.20.0",
+    "pixi.js": "^8.20.1"
   },
   "devDependencies": {
+    "@types/matter-js": "^0.20.2",
     "typescript": "^6.0.3",
     "vite": "^8.3.0"
   }

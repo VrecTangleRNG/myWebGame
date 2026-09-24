@@ -1,11 +1,11 @@
-import { Application } from 'pixi.js';
+import { Application, Ticker } from 'pixi.js';
 
 
 export interface State {
 	name: string;
 	app: Application;
 	enter(): void;
-	update(delta: number): boolean;
+	update(ticker: Ticker): boolean;
 	exit(): State;
 }
 
@@ -26,8 +26,8 @@ export class StateMachine {
 		return this.states.pop();
 	}
 
-	run(delta: number) {
-		if (!this.states[this.states.length - 1].update(delta)) {
+	run(ticker: Ticker) {
+		if (!this.states[this.states.length - 1].update(ticker)) {
 			this.push(this.states[this.states.length - 1].exit());
 			this.pop();
 		}

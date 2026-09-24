@@ -16,6 +16,7 @@ async function main(): Promise<void> {
 		backgroundColor: 0x000000
 	});
 	document.body.appendChild(app.canvas);
+
 	app.stage.sortableChildren = true;
 	await AssetsManager.load();
 
@@ -23,8 +24,7 @@ async function main(): Promise<void> {
 	Input.initialize(app);
 	const stateMachine = new StateMachine(new GameplayState(app));
 	app.ticker.add((ticker) => {
-		let delta = ticker.deltaMS / 1000;
-		stateMachine.run(delta);
+		stateMachine.run(ticker);
 	});
 }
 

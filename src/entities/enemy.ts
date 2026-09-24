@@ -1,54 +1,59 @@
-import { Application, Sprite } from "pixi.js";
-import { Tween, Easing } from "@tweenjs/tween.js";
-import * as Shapes from "yy-intersects";
+import { Application, Sprite, Ticker } from "pixi.js";
+import Matter from "matter-js";
+
+import { runningPhysicsEngine } from "../state/list/gameplay";
 
 
 export class Enemy {
-	sprite: Sprite;
+	public sprite: Sprite;
 
+	private body: Matter.Body;
 	private app: Application;
 	private health: number;
-	private shape: Shapes.Rectangle;
-	private moveToward: Tween;
+	private targetX: number;
+	private xVelocity: number;
 
 	constructor(
 		app: Application,
 		spawnX: number,
 		spawnY: number,
 		targetX: number,
-		speedPerMS: number = 128 / 1000
+		speedPerMS: number = 8
 	) {
 		this.app = app;
 
 		this.sprite = Sprite.from("player");
 		this.sprite.anchor.set(0.5);
-		this.sprite.x = spawnX + this.sprite.width / 2 + 4;
-		this.sprite.y = spawnY - this.sprite.height / 2;
 		this.app.stage.addChild(this.sprite);
 
+		this.body = Matter.Bodies.rectangle(
+			spawnX + this.sprite.width / 2 + 4,
+			spawnY - this.sprite.height / 2,
+			this.sprite.width,
+			this.sprite.height, {
+				isSensor: true
+		});
+		Matter.Composite.add(runningPhysicsEngine.world, this.body);
+
 		this.health = 2;
-		this.shape = new Shapes.Rectangle(this.sprite);
-		this.moveToward = new Tween(this.sprite.position)
-			.to({ x: targetX }, Math.abs(targetX - spawnX) / speedPerMS)
-			.easing(Easing.Linear.InOut)
-			.onComplete(() => {
-				this.moveToward.stop();
-			})
-			.start();
+		this.targetX = targetX;
+		this.xVelocity = speedPerMS;
 	}
 
-	update(delta: number) {
-		this.moveToward.update();
-		this.shape.update();
+	update(ticker: Ticker) {
+		if (this.body.position.x > this.targetX) {
+			Matter.Body.setVelocity(this.body, { x: -this.xVelocity, y: 0 });
+		}
+		else {
+			Matter.Body.setVelocity(this.body, { x: 0, y: 0 });
+		}
+		this.sprite.x = this.body.position.x;
+		this.sprite.y = this.body.position.y;
 	}
 
 	dealDamage(attackPoint: number) {
 		console.log(this.health);
 		this.health -= attackPoint;
 		console.log(this.health);
-	}
-
-	getShape(): Shapes.Rectangle {
-		return this.shape;
 	}
 }

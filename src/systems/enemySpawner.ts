@@ -1,4 +1,4 @@
-import { Application } from "pixi.js";
+import { Application, Ticker } from "pixi.js";
 
 import { Enemy } from "../entities/enemy";
 
@@ -46,8 +46,8 @@ export class EnemySpawner {
 		}
 	}
 
-	update(delta: number) {
-		this.currentSpawnDuration += delta;
+	update(ticker: Ticker) {
+		this.currentSpawnDuration += ticker.deltaMS / 1000;
 		if (this.currentSpawnDuration >= this.spawnRate) {
 			let randomY = Math.floor(Math.random() * this.spawnPoints.length);
 			let randomTargetX = Math.floor(Math.random() * this.targetX.length);
@@ -63,7 +63,7 @@ export class EnemySpawner {
 
 		// Update each instance
 		for (let i = 0; i < this.enemies.length; i++) {
-			this.enemies[i].update(delta);
+			this.enemies[i].update(ticker);
 		}
 	}
 

@@ -1,9 +1,8 @@
-import { Application, Point, Sprite } from 'pixi.js';
+import { Application, Point, Sprite, Ticker } from 'pixi.js';
+import Matter from 'matter-js';
 
 import * as Input from './../systems/inputs';
-import { exportedObjects } from "./../state/list/gameplay";
-import { Enemy } from './enemy';
-
+import { runningPhysicsEngine } from '../state/list/gameplay';
 
 export enum ShotType {
 	Precise = 0,
@@ -53,7 +52,7 @@ export class BulletContainer {
 	}
 
 	update(
-		delta: number,
+		ticker: Ticker,
 		currentAngle: number,
 		currentX: number,
 		currentY: number
@@ -63,9 +62,8 @@ export class BulletContainer {
 		this.properties.from.y = currentY;
 
 		for (let i = 0; i < this.bullets.length; i++) {
-			this.bullets[i].update(delta);
+			this.bullets[i].update(ticker);
 
-			// Delete the bullet when is not flying
 			if (!this.bullets[i].isBulletFlying) {
 				this.properties.app.stage.removeChild(this.bullets[i].sprite);
 				this.bullets.splice(i, 1);
@@ -75,11 +73,11 @@ export class BulletContainer {
 }
 
 class Bullet {
-	sprite: Sprite;
-	isBulletFlying: boolean = true;
+	public sprite: Sprite;
+	public isBulletFlying: boolean = true;
+	public body: Matter.Body;
+
 	private properties: BulletProperties;
-	private wasShotByPlayer: boolean;
-	private pointShape: Point;
 
 	constructor(properties: BulletProperties) {
 		this.properties = { ...properties };
@@ -90,33 +88,24 @@ class Bullet {
 		this.sprite.zIndex = 9;
 		this.sprite.anchor.set(0.5);
 		this.sprite.scale.set(this.properties.size);
-		this.sprite.position.x = this.properties.from.x;
-		this.sprite.position.y = this.properties.from.y;
 
-		this.wasShotByPlayer = this.properties.fromPlayer;
-		this.pointShape = new Point(this.sprite.x, this.sprite.y);
+		this.body = Matter.Bodies.rectangle(
+			this.properties.from.x,
+			this.properties.from.y,
+			this.sprite.width,
+			this.sprite.height
+		);
+		Matter.Composite.add(runningPhysicsEngine.world, this.body);
 	}
 
-	update(delta: number) {
+	update(ticker: Ticker) {
 		let radians = this.properties.angle * Math.PI / 180;
-		this.sprite.position.x += Math.cos(radians) * this.properties.speed * delta;
-		this.sprite.position.y += Math.sin(radians) * this.properties.speed * delta;
-		this.pointShape.set(this.sprite.x, this.sprite.y);
+		Matter.Body.setVelocity(this.body, {
+			x: Math.cos(radians) * this.properties.speed,
+			y: Math.sin(radians) * this.properties.speed,
+		});
 
-		if (this.wasShotByPlayer) this.checkEnemyCollision();
-	}
-
-	private checkEnemyCollision() {
-		let enemies: Enemy[] = exportedObjects[0].getEnemyList();
-		for (let i = 0; i < enemies.length; i++) {
-			if (enemies[i].getShape().collidesPoint(this.pointShape)) {
-				enemies[i].dealDamage(2);
-				this.deleteBullet();
-			}
-		}
-	}
-
-	private deleteBullet() {
-		this.isBulletFlying = false;
+		this.sprite.x = this.body.position.x;
+		this.sprite.y = this.body.position.y;
 	}
 }
