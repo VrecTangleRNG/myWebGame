@@ -8,12 +8,12 @@ import { ShotType, BulletContainer } from './bullet';
 export class Gun {
 	// Gun properties
 	public sprite: Sprite;
+	public magazine: BulletContainer;
 	private aimingMovement: Tween;
 	private aimSpeed: number;
 	private bulletSize: number;
 	private bulletSpeed: number;
 	private shotType: ShotType;
-	private magazine: BulletContainer;
 
 	constructor(
 		app: Application,
@@ -26,7 +26,7 @@ export class Gun {
 
 		// TODO: Make this customizable later
 		this.bulletSize = 1.5;
-		this.bulletSpeed = 40;
+		this.bulletSpeed = 20;
 		this.shotType = ShotType.Precise;
 		this.magazine = new BulletContainer(
 			app, 0, 0,

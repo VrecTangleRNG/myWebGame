@@ -3,7 +3,7 @@ import { Gun } from './gun';
 
 export class Player {
 	public sprite: Sprite;
-	private gun: Gun;
+	public gun: Gun;
 	private app: Application;
 
 	constructor(app: Application) {
@@ -17,7 +17,7 @@ export class Player {
 	init() {
 		this.sprite.anchor.set(0.5);
 		this.sprite.position.y =
-			this.app.screen.height - 
+			this.app.screen.height -
 			this.sprite.height / 2;
 		this.sprite.position.x =
 			this.sprite.width / 2;

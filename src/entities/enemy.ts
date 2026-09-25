@@ -1,7 +1,13 @@
 import { Application, Sprite, Ticker } from "pixi.js";
 import Matter from "matter-js";
+import { Tween, Easing } from "@tweenjs/tween.js";
 
-import { runningPhysicsEngine } from "../state/list/gameplay";
+import { enemySignals } from "../systems/events";
+import {
+	runningPhysicsEngine,
+	runningPlayer
+}
+from "../state/list/gameplay";
 
 
 export class Enemy {
@@ -12,6 +18,13 @@ export class Enemy {
 	private health: number;
 	private targetX: number;
 	private xVelocity: number;
+	private isAlive: boolean;
+
+	private bodyCopy: { y: number, rad: number };
+	private jumpAndDie: Tween;
+	private fallOffScreen: Tween;
+	private rotateEnemy: Tween;
+	private animationLength: number;
 
 	constructor(
 		app: Application,
@@ -38,22 +51,80 @@ export class Enemy {
 		this.health = 2;
 		this.targetX = targetX;
 		this.xVelocity = speedPerMS;
+		this.isAlive = true;
+
+		// Enemy died animations
+		this.animationLength = 1500;
+		this.bodyCopy = {
+			y: this.body.position.y,
+			rad: this.body.angle
+		}
+		this.fallOffScreen = new Tween(this.bodyCopy)
+			.to({
+				y: this.app.screen.height + this.sprite.height,
+			}, this.animationLength * 6/10)
+			.easing(Easing.Quadratic.In);
+		this.jumpAndDie = new Tween(this.bodyCopy)
+			.to({
+				y: this.body.position.y - 300,
+			}, this.animationLength * 4/10)
+			.easing(Easing.Quadratic.Out)
+			.chain(this.fallOffScreen);
+		this.rotateEnemy = new Tween(this.bodyCopy)
+			.to({
+				rad: -Math.PI * 6
+			}, this.animationLength)
+			.easing(Easing.Linear.InOut);
 	}
 
-	update(ticker: Ticker) {
-		if (this.body.position.x > this.targetX) {
-			Matter.Body.setVelocity(this.body, { x: -this.xVelocity, y: 0 });
+	private checkCollision() {
+		const collisions = Matter.Query.collides(
+			this.body,
+			runningPlayer.gun.magazine.getFlyingBulletBodies()
+		);
+		if (collisions.length > 0) {
+			this.health -= 2;
+			if (this.health <= 0) {
+				enemySignals.emit(
+					"enemyKilled",
+					collisions[0].bodyA.isSensor ?
+						collisions[0].bodyB : collisions[0].bodyA
+				);
+				Matter.Body.setStatic(this.body, true);
+				this.body.collisionFilter.mask = 3;
+				this.jumpAndDie.start();
+				this.rotateEnemy.start();
+				this.isAlive = false;
+			}
+		}
+	}
+
+	public update(ticker: Ticker) {
+
+		// Move to target if still alive
+		if (this.isAlive) {
+			this.checkCollision();
+			if (this.body.position.x > this.targetX) {
+				Matter.Body.setVelocity(this.body, { x: -this.xVelocity, y: 0 });
+			}
+			else {
+				Matter.Body.setVelocity(this.body, { x: 0, y: 0 });
+			}
 		}
 		else {
-			Matter.Body.setVelocity(this.body, { x: 0, y: 0 });
+			this.jumpAndDie.update();
+			this.fallOffScreen.update();
+			this.rotateEnemy.update();
+			Matter.Body.setPosition(this.body, {
+				x: this.body.position.x,
+				y: this.bodyCopy.y
+			});
+			Matter.Body.setAngle(this.body, this.bodyCopy.rad);
 		}
+
+		// Match visuals with physics calculations
 		this.sprite.x = this.body.position.x;
 		this.sprite.y = this.body.position.y;
-	}
-
-	dealDamage(attackPoint: number) {
-		console.log(this.health);
-		this.health -= attackPoint;
-		console.log(this.health);
+		this.sprite.angle = this.body.angle * 180 / Math.PI;
 	}
 }

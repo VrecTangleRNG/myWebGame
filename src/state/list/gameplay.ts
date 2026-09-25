@@ -7,6 +7,7 @@ import { EnemySpawner, SpawnMode } from "../../systems/enemySpawner";
 
 
 export let runningPhysicsEngine: Matter.Engine;
+export let runningPlayer: Player;
 
 export class GameplayState implements State {
 	name = "gameplay";
@@ -19,7 +20,10 @@ export class GameplayState implements State {
 
 	constructor(app: Application) {
 		this.app = app;
+
+		// Player initializations
 		this.player = new Player(app);
+		runningPlayer = this.player;
 
 		// Physics engine
 		this.physicsEngine = Matter.Engine.create({

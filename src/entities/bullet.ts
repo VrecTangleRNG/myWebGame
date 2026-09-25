@@ -1,8 +1,9 @@
-import { Application, Point, Sprite, Ticker } from 'pixi.js';
+import { Application, Sprite, Ticker } from 'pixi.js';
 import Matter from 'matter-js';
 
 import * as Input from './../systems/inputs';
 import { runningPhysicsEngine } from '../state/list/gameplay';
+import { enemySignals } from '../systems/events';
 
 export enum ShotType {
 	Precise = 0,
@@ -22,7 +23,8 @@ type BulletProperties = {
 
 export class BulletContainer {
 	private properties: BulletProperties;
-	private bullets: Bullet[] = [];
+	private bulletSprites: Bullet[] = [];
+	private bulletBodies: Matter.Body[] = [];
 
 	constructor(
 		app: Application,
@@ -46,12 +48,26 @@ export class BulletContainer {
 		if (fromPlayer) {
 			Input.onPointerDown(() => {
 				let bullet: Bullet = new Bullet(this.properties);
-				this.bullets.push(bullet);
+				this.bulletSprites.push(bullet);
+				this.bulletBodies.push(bullet.body);
+			});
+
+			enemySignals.on("enemyKilled", (arg) => {
+				let index = this.bulletBodies.indexOf(arg);
+				this.bulletSprites[index].isBulletFlying = false;
 			});
 		}
 	}
 
-	update(
+	public getFlyingBullets() {
+		return this.bulletSprites;
+	}
+
+	public getFlyingBulletBodies() {
+		return this.bulletBodies;
+	}
+
+	public update(
 		ticker: Ticker,
 		currentAngle: number,
 		currentX: number,
@@ -61,12 +77,19 @@ export class BulletContainer {
 		this.properties.from.x = currentX;
 		this.properties.from.y = currentY;
 
-		for (let i = 0; i < this.bullets.length; i++) {
-			this.bullets[i].update(ticker);
-
-			if (!this.bullets[i].isBulletFlying) {
-				this.properties.app.stage.removeChild(this.bullets[i].sprite);
-				this.bullets.splice(i, 1);
+		// TODO: refactor this function into event driven
+		for (let i = 0; i < this.bulletSprites.length; i++) {
+			this.bulletSprites[i].update(ticker);
+			if (!this.bulletSprites[i].isBulletFlying) {
+				this.properties.app.stage.removeChild(
+					this.bulletSprites[i].sprite
+				);
+				Matter.Composite.remove(
+					runningPhysicsEngine.world,
+					this.bulletBodies[i]
+				);
+				this.bulletSprites.splice(i, 1);
+				this.bulletBodies.splice(i, 1);
 			}
 		}
 	}
