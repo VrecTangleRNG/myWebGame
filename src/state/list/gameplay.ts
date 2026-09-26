@@ -1,9 +1,10 @@
-import { Application, Sprite, Ticker } from "pixi.js";
+import { Application, Sprite, Ticker, Text, TextStyle } from "pixi.js";
 import { State } from './../machine';
 import Matter from "matter-js";
 
 import { Player } from "../../entities/player";
 import { EnemySpawner, SpawnMode } from "../../systems/enemySpawner";
+import { enemySignals } from "../../systems/events";
 
 
 export let runningPhysicsEngine: Matter.Engine;
@@ -17,6 +18,10 @@ export class GameplayState implements State {
 	private background: Sprite;
 	private enemySpawner: EnemySpawner;
 	private physicsEngine: Matter.Engine;
+
+	private textStyle: TextStyle;
+	private scoreText: Text;			// TODO: Substitute with BitmapText later
+	private score: number = 0;
 
 	constructor(app: Application) {
 		this.app = app;
@@ -39,6 +44,19 @@ export class GameplayState implements State {
 
 		// Enemy spawning
 		this.enemySpawner = new EnemySpawner(app, SpawnMode.Normal);
+
+		// Text rendering
+		this.textStyle = new TextStyle({
+			fontFamily: "Pacifico",
+			fontSize: 36,
+			fill: "#DDDDDD"
+		});
+		this.scoreText = new Text({ text: "score: 0", style: this.textStyle});
+		this.app.stage.addChild(this.scoreText);
+		enemySignals.on("enemyKilled", () => {
+			this.score += 10;
+			this.scoreText.text = `score: ${this.score}`
+		});
 	}
 
 	enter(): void {
