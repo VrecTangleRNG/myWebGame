@@ -22,11 +22,11 @@ export class Player {
 		this.sprite.position.x =
 			this.sprite.width / 2;
 
-		this.gun.sprite.anchor.y = 0.5;
 		this.gun.sprite.position.set(
 			this.sprite.position.x,
 			this.sprite.position.y
 		);
+		this.gun.sprite.angle = 0;
 	}
 
 	update(ticker: Ticker) {

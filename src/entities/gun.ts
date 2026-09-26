@@ -1,4 +1,4 @@
-import { Application, Sprite, Ticker } from 'pixi.js';
+import { Application, Sprite, Ticker, Graphics, GraphicsContext } from 'pixi.js';
 import { Tween, Easing } from '@tweenjs/tween.js';
 import { yoyo } from './../systems/utils';
 
@@ -10,11 +10,18 @@ export class Gun {
 	// Gun properties
 	public sprite: Sprite;
 	public magazine: BulletContainer;
+	private ownedByPlayer: boolean;
 	private aimingMovement: Tween;
 	private aimSpeed: number;
 	private bulletSize: number;
 	private bulletSpeed: number;
 	private shotType: ShotType;
+
+	private pointerLine: Graphics;
+	private pointerContext: GraphicsContext;
+	private markerPointer: Graphics;
+	private markerContext: GraphicsContext;
+	private lineLength: number;
 
 	constructor(
 		app: Application,
@@ -26,7 +33,7 @@ export class Gun {
 		this.sprite.angle = 0;
 
 		// TODO: Make the gun anchor itself with different sprite textures
-		this.sprite.anchor.set(0, 0.5);
+		this.sprite.anchor.set(0, 0.2);
 
 		app.stage.addChild(this.sprite);
 
@@ -40,21 +47,49 @@ export class Gun {
 			this.bulletSpeed, this.shotType,
 			fromPlayer
 		)
+		this.ownedByPlayer = fromPlayer;
 
-		this.aimSpeed = 0;
-		this.aimingMovement = new Tween(this.sprite);
-		if (aimSpeed) {
-			this.aimSpeed = aimSpeed;
-			this.aimingMovement
-				.to({ angle: -60}, this.aimSpeed * 1000)
-				.easing(yoyo(Easing.Linear.InOut))
-				.repeat(Infinity)
-				.start();
+		this.aimSpeed = aimSpeed ? aimSpeed : 0;
+		this.aimingMovement = new Tween(this.sprite)
+			.to({ angle: -60}, this.aimSpeed * 1000)
+			.easing(yoyo(Easing.Linear.InOut))
+			.repeat(Infinity)
+			.start();
+
+		this.pointerContext = new GraphicsContext();
+		this.markerContext = new GraphicsContext();
+		this.pointerLine = new Graphics(this.pointerContext);
+		this.markerPointer = new Graphics(this.markerContext);
+		if (fromPlayer) {
+			app.stage.addChild(this.markerPointer);
+			app.stage.addChild(this.pointerLine);
+			this.markerPointer.zIndex = 9;
+			this.pointerLine.zIndex = 9;
+			this.lineLength = 300;
 		}
 	}
 
 	update(ticker: Ticker): void {
-		if (this.aimSpeed) this.aimingMovement.update();
+		if (this.ownedByPlayer) {
+			let radians = this.sprite.angle * Math.PI / 180;
+			this.aimingMovement.update();
+			this.markerContext.clear()
+				.moveTo(this.sprite.x, this.sprite.y)
+				.arc(
+					this.sprite.x, this.sprite.y,
+					this.lineLength, 0,
+					radians, true
+				)
+				.fill({ color: 0xFFFFFF, alpha: 0.3});
+			this.pointerContext.clear()
+				.moveTo(this.sprite.x, this.sprite.y)
+				.lineTo(
+					this.sprite.x + this.lineLength * Math.cos(radians),
+					this.sprite.y + this.lineLength * Math.sin(radians)
+				)
+				.stroke({ width: 2, color: 0xFFFFFF });
+		}
+
 		this.magazine.update(
 			ticker,
 			this.sprite.angle,
