@@ -17,11 +17,13 @@ export class Gun {
 
 	constructor(
 		app: Application,
-		aimSpeed: number = 2,
+		fromPlayer: boolean,
+		aimSpeed?: number,
 	) {
 		this.sprite = Sprite.from("pistol");
 		this.sprite.zIndex = 11;
 		this.sprite.angle = 0;
+		this.sprite.anchor.set(0, 0.5);
 		app.stage.addChild(this.sprite);
 
 		// TODO: Make this customizable later
@@ -31,25 +33,29 @@ export class Gun {
 		this.magazine = new BulletContainer(
 			app, 0, 0,
 			this.bulletSize,
-			this.bulletSpeed,
-			this.shotType,
-			true
+			this.bulletSpeed, this.shotType,
+			fromPlayer
 		)
 
-		this.aimSpeed = aimSpeed;
-		this.aimingMovement = new Tween(this.sprite)
-			.to({ angle: -60}, this.aimSpeed * 1000)
-			.easing(yoyo(Easing.Linear.InOut))
-			.repeat(Infinity)
-			.start();
+		this.aimSpeed = 0;
+		this.aimingMovement = new Tween(this.sprite);
+		if (aimSpeed) {
+			this.aimSpeed = aimSpeed;
+			this.aimingMovement
+				.to({ angle: -60}, this.aimSpeed * 1000)
+				.easing(yoyo(Easing.Linear.InOut))
+				.repeat(Infinity)
+				.start();
+		}
 	}
 
 	update(ticker: Ticker): void {
-		this.aimingMovement.update();
+		if (this.aimSpeed) this.aimingMovement.update();
 		this.magazine.update(
 			ticker,
 			this.sprite.angle,
-			this.sprite.x, this.sprite.y
+			this.sprite.x,
+			this.sprite.y
 		);
 	}
 }

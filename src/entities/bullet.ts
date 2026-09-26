@@ -54,7 +54,7 @@ export class BulletContainer {
 
 			enemySignals.on("enemyKilled", (arg) => {
 				let index = this.bulletBodies.indexOf(arg);
-				this.bulletSprites[index].isBulletFlying = false;
+				if (index >= 0) this.bulletSprites[index].isBulletFlying = false;
 			});
 		}
 	}
@@ -77,21 +77,21 @@ export class BulletContainer {
 		this.properties.from.x = currentX;
 		this.properties.from.y = currentY;
 
-		// TODO: refactor this function into event driven
-		for (let i = 0; i < this.bulletSprites.length; i++) {
-			this.bulletSprites[i].update(ticker);
-			if (!this.bulletSprites[i].isBulletFlying) {
-				this.properties.app.stage.removeChild(
-					this.bulletSprites[i].sprite
-				);
-				Matter.Composite.remove(
-					runningPhysicsEngine.world,
-					this.bulletBodies[i]
-				);
-				this.bulletSprites.splice(i, 1);
-				this.bulletBodies.splice(i, 1);
+		this.bulletSprites.forEach((bullet: Bullet, index: number) => {
+			if (bullet.isBulletFlying) {
+				bullet.update(ticker);
+				return;
 			}
-		}
+
+			// Remove bullet if not flying anymore
+			Matter.Composite.remove(
+				runningPhysicsEngine.world,
+				this.bulletBodies[index]
+			);
+			this.properties.app.stage.removeChild(bullet.sprite);
+			this.bulletSprites.splice(index, 1);
+			this.bulletBodies.splice(index, 1);
+		});
 	}
 }
 

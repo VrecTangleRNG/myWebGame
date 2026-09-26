@@ -10,7 +10,7 @@ export class Player {
 		this.sprite = Sprite.from("player");
 		app.stage.addChild(this.sprite);
 		this.sprite.zIndex = 10;
-		this.gun = new Gun(app);
+		this.gun = new Gun(app, true, 2);
 		this.app = app;
 	}
 	

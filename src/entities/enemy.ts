@@ -3,6 +3,7 @@ import Matter from "matter-js";
 import { Tween, Easing } from "@tweenjs/tween.js";
 
 import { enemySignals } from "../systems/events";
+import { Gun } from "./gun";
 import {
 	runningPhysicsEngine,
 	runningPlayer
@@ -14,7 +15,9 @@ export class Enemy {
 	public sprite: Sprite;
 
 	private body: Matter.Body;
+	private gun: Gun;
 	private app: Application;
+
 	private health: number;
 	private targetX: number;
 	private xVelocity: number;
@@ -47,6 +50,9 @@ export class Enemy {
 				isSensor: true
 		});
 		Matter.Composite.add(runningPhysicsEngine.world, this.body);
+		
+		this.gun = new Gun(this.app, false);
+		this.gun.sprite.scale.x = -1;
 
 		this.health = 2;
 		this.targetX = targetX;
@@ -82,14 +88,14 @@ export class Enemy {
 			this.body,
 			runningPlayer.gun.magazine.getFlyingBulletBodies()
 		);
+
 		if (collisions.length > 0) {
+			const bulletBody = collisions[0].bodyA === this.body
+				? collisions[0].bodyB
+				: collisions[0].bodyA;
 			this.health -= 2;
 			if (this.health <= 0) {
-				enemySignals.emit(
-					"enemyKilled",
-					collisions[0].bodyA.isSensor ?
-						collisions[0].bodyB : collisions[0].bodyA
-				);
+				enemySignals.emit("enemyKilled", bulletBody);
 				Matter.Body.setStatic(this.body, true);
 				this.body.collisionFilter.mask = 3;
 				this.jumpAndDie.start();
@@ -122,9 +128,9 @@ export class Enemy {
 			Matter.Body.setAngle(this.body, this.bodyCopy.rad);
 		}
 
-		// Match visuals with physics calculations
-		this.sprite.x = this.body.position.x;
-		this.sprite.y = this.body.position.y;
+		// Match body and gun visual with physics calculations
+		this.sprite.x = this.gun.sprite.x = this.body.position.x;
+		this.sprite.y = this.gun.sprite.y = this.body.position.y;
 		this.sprite.angle = this.body.angle * 180 / Math.PI;
 	}
 }
