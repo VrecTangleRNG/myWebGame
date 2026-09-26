@@ -19,6 +19,8 @@ export class Enemy {
 	private app: Application;
 
 	private health: number;
+	private aimTime: number;
+	private currentAimTime: number = 0;
 	private targetX: number;
 	private xVelocity: number;
 	private isAlive: boolean;
@@ -27,7 +29,8 @@ export class Enemy {
 	private jumpAndDie: Tween;
 	private fallOffScreen: Tween;
 	private rotateEnemy: Tween;
-	private animationLength: number;
+	private deadAnimationDuration: number;
+	private aimingAnimation: Tween;
 
 	constructor(
 		app: Application,
@@ -52,15 +55,17 @@ export class Enemy {
 		Matter.Composite.add(runningPhysicsEngine.world, this.body);
 		
 		this.gun = new Gun(this.app, false);
-		this.gun.sprite.scale.x = -1;
+		this.gun.sprite.angle = 180;
+		this.gun.sprite.scale.y = -1;
 
 		this.health = 2;
+		this.aimTime = 3000;
 		this.targetX = targetX;
 		this.xVelocity = speedPerMS;
 		this.isAlive = true;
 
 		// Enemy died animations
-		this.animationLength = 1500;
+		this.deadAnimationDuration = 1500;
 		this.bodyCopy = {
 			y: this.body.position.y,
 			rad: this.body.angle
@@ -68,19 +73,26 @@ export class Enemy {
 		this.fallOffScreen = new Tween(this.bodyCopy)
 			.to({
 				y: this.app.screen.height + this.sprite.height,
-			}, this.animationLength * 6/10)
+			}, this.deadAnimationDuration * 6/10)
 			.easing(Easing.Quadratic.In);
 		this.jumpAndDie = new Tween(this.bodyCopy)
 			.to({
 				y: this.body.position.y - 300,
-			}, this.animationLength * 4/10)
+			}, this.deadAnimationDuration * 4/10)
 			.easing(Easing.Quadratic.Out)
 			.chain(this.fallOffScreen);
 		this.rotateEnemy = new Tween(this.bodyCopy)
 			.to({
 				rad: -Math.PI * 6
-			}, this.animationLength)
+			}, this.deadAnimationDuration)
 			.easing(Easing.Linear.InOut);
+
+		// Enemy aiming animation
+		this.aimingAnimation = new Tween(this.gun.sprite)
+			.easing(Easing.Back.Out)
+			.onComplete(() => {
+				this.aimingAnimation.pause();
+			});
 	}
 
 	private checkCollision() {
@@ -108,13 +120,36 @@ export class Enemy {
 	public update(ticker: Ticker) {
 
 		// Move to target if still alive
+		this.aimingAnimation.update();
+		this.gun.update(ticker);
 		if (this.isAlive) {
 			this.checkCollision();
 			if (this.body.position.x > this.targetX) {
 				Matter.Body.setVelocity(this.body, { x: -this.xVelocity, y: 0 });
 			}
+
+			// Target to player in a specified time
 			else {
 				Matter.Body.setVelocity(this.body, { x: 0, y: 0 });
+
+				if (
+					!this.aimingAnimation.isPlaying() &&
+					!this.aimingAnimation.isPaused()
+				) {
+					this.aimingAnimation.to({
+						angle: Math.atan2(
+							this.sprite.y - runningPlayer.sprite.y,
+							this.sprite.x - runningPlayer.sprite.x,
+						) * 180 / Math.PI + 180
+					}, 1500);
+					this.aimingAnimation.start();
+				}
+
+				this.currentAimTime += ticker.deltaMS;
+				if (this.currentAimTime >= this.aimTime) {
+					this.gun.magazine.fireBullet();
+					this.currentAimTime = 0;
+				}
 			}
 		}
 		else {

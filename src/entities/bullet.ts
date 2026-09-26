@@ -47,9 +47,7 @@ export class BulletContainer {
 
 		if (fromPlayer) {
 			Input.onPointerDown(() => {
-				let bullet: Bullet = new Bullet(this.properties);
-				this.bulletSprites.push(bullet);
-				this.bulletBodies.push(bullet.body);
+				this.fireBullet();
 			});
 
 			enemySignals.on("enemyKilled", (arg) => {
@@ -57,6 +55,12 @@ export class BulletContainer {
 				if (index >= 0) this.bulletSprites[index].isBulletFlying = false;
 			});
 		}
+	}
+
+	public fireBullet(): void {
+		let bullet: Bullet = new Bullet(this.properties);
+		this.bulletSprites.push(bullet);
+		this.bulletBodies.push(bullet.body);
 	}
 
 	public getFlyingBullets() {

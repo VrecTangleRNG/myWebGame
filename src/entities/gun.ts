@@ -6,6 +6,7 @@ import { ShotType, BulletContainer } from './bullet';
 
 
 export class Gun {
+
 	// Gun properties
 	public sprite: Sprite;
 	public magazine: BulletContainer;
@@ -23,7 +24,10 @@ export class Gun {
 		this.sprite = Sprite.from("pistol");
 		this.sprite.zIndex = 11;
 		this.sprite.angle = 0;
+
+		// TODO: Make the gun anchor itself with different sprite textures
 		this.sprite.anchor.set(0, 0.5);
+
 		app.stage.addChild(this.sprite);
 
 		// TODO: Make this customizable later
