@@ -60,12 +60,12 @@ export class Gun {
 		this.markerContext = new GraphicsContext();
 		this.pointerLine = new Graphics(this.pointerContext);
 		this.markerPointer = new Graphics(this.markerContext);
+		this.lineLength = 300;
 		if (fromPlayer) {
 			app.stage.addChild(this.markerPointer);
 			app.stage.addChild(this.pointerLine);
 			this.markerPointer.zIndex = 9;
 			this.pointerLine.zIndex = 9;
-			this.lineLength = 300;
 		}
 	}
 

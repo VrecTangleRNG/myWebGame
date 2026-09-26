@@ -21,14 +21,11 @@ export class GameplayState implements State {
 
 	private textStyle: TextStyle;
 	private scoreText: Text;			// TODO: Substitute with BitmapText later
+	private hpText: Text;				// TODO: Substitute with BitmapText later
 	private score: number = 0;
 
 	constructor(app: Application) {
 		this.app = app;
-
-		// Player initializations
-		this.player = new Player(app);
-		runningPlayer = this.player;
 
 		// Physics engine
 		this.physicsEngine = Matter.Engine.create({
@@ -37,6 +34,10 @@ export class GameplayState implements State {
 			}
 		});
 		runningPhysicsEngine = this.physicsEngine;
+
+		// Player initializations
+		this.player = new Player(app);
+		runningPlayer = this.player;
 
 		// Background
 		this.background = Sprite.from("background");
@@ -49,13 +50,15 @@ export class GameplayState implements State {
 		this.textStyle = new TextStyle({
 			fontFamily: "Pacifico",
 			fontSize: 36,
-			fill: "#DDDDDD"
+			fill: 0x111111
 		});
 		this.scoreText = new Text({ text: "score: 0", style: this.textStyle});
+		this.hpText = new Text({ text: "HP: 20", style: this.textStyle, y: 44});
 		this.app.stage.addChild(this.scoreText);
+		this.app.stage.addChild(this.hpText);
 		enemySignals.on("enemyKilled", () => {
 			this.score += 10;
-			this.scoreText.text = `score: ${this.score}`
+			this.scoreText.text = `score: ${this.score}`;
 		});
 	}
 
@@ -68,6 +71,7 @@ export class GameplayState implements State {
 		Matter.Engine.update(this.physicsEngine, ticker.deltaMS);
 		this.enemySpawner.update(ticker);
 		this.player.update(ticker);
+		this.hpText.text = `HP: ${this.player.health}`;
 		return true;
 	}
 

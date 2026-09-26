@@ -123,6 +123,7 @@ class Bullet {
 			this.sprite.height
 		);
 		Matter.Composite.add(runningPhysicsEngine.world, this.body);
+		if (properties.fromPlayer) this.body.label = "f";
 	}
 
 	update(ticker: Ticker) {
