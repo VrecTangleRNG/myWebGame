@@ -30,7 +30,7 @@ export class GameplayState implements State {
 		// Physics engine
 		this.physicsEngine = Matter.Engine.create({
 			gravity: {
-				x: 0, y: 0
+				x: 0, y: 20
 			}
 		});
 		runningPhysicsEngine = this.physicsEngine;

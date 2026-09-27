@@ -3,7 +3,7 @@ import Matter from 'matter-js';
 
 import * as Input from './../systems/inputs';
 import { runningPhysicsEngine } from '../state/list/gameplay';
-import { enemySignals } from '../systems/events';
+import { enemySignals, playerSignals } from '../systems/events';
 
 export enum ShotType {
 	Precise = 0,
@@ -50,7 +50,16 @@ export class BulletContainer {
 				this.fireBullet();
 			});
 
+			// Signals handling (for bullets owned by player)
 			enemySignals.on("enemyKilled", (arg) => {
+				let index = this.bulletBodies.indexOf(arg);
+				if (index >= 0) this.bulletSprites[index].isBulletFlying = false;
+			});
+		}
+
+		// Signals handling for bullets owned by enemies
+		else {
+			playerSignals.on("hurt", (arg) => {
 				let index = this.bulletBodies.indexOf(arg);
 				if (index >= 0) this.bulletSprites[index].isBulletFlying = false;
 			});

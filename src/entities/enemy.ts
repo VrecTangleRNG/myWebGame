@@ -50,10 +50,11 @@ export class Enemy {
 			spawnY - this.sprite.height / 2,
 			this.sprite.width,
 			this.sprite.height, {
-				isSensor: true
+				isSensor: true,
+				label: "e"
 		});
 		Matter.Composite.add(runningPhysicsEngine.world, this.body);
-		
+
 		this.gun = new Gun(this.app, false);
 		this.gun.sprite.angle = 180;
 		this.gun.sprite.scale.y = -1;
@@ -82,9 +83,10 @@ export class Enemy {
 			.easing(Easing.Quadratic.Out)
 			.chain(this.fallOffScreen);
 		this.rotateEnemy = new Tween(this.bodyCopy)
-			.to({
-				rad: -Math.PI * 6
-			}, this.deadAnimationDuration)
+			.to(
+				{ rad: -Math.PI * 6 },
+				this.deadAnimationDuration
+			)
 			.easing(Easing.Linear.InOut);
 
 		// Enemy aiming animation
