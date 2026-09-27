@@ -32,7 +32,8 @@ export class Player {
 			this.sprite.width,
 			this.sprite.height,
 			{
-				label: "f"
+				isStatic: true,
+				label: "fp"
 		});
 		Matter.Composite.add(runningPhysicsEngine.world, this.body);
 		this.bodyCopy = {
@@ -75,10 +76,11 @@ export class Player {
 		Matter.Events.on(runningPhysicsEngine, "collisionStart", (event) => {
 			let pairs = event.pairs;
 
+			console.log(pairs);
 			pairs.forEach((pair) => {
 				if (
-					(pair.bodyA.label !== pair.bodyB.label) &&
-					(pair.bodyA === this.body || pair.bodyB === this.body)
+					(pair.bodyA.label === "fp" || pair.bodyB.label === "fp") &&
+					(pair.bodyA.label === "e" || pair.bodyB.label === "e")
 				) {
 					let collidingBody = pair.bodyA === this.body ?
 						pair.bodyB :

@@ -129,10 +129,20 @@ class Bullet {
 			this.properties.from.x,
 			this.properties.from.y,
 			this.sprite.width,
-			this.sprite.height
+			this.sprite.height,
 		);
 		Matter.Composite.add(runningPhysicsEngine.world, this.body);
 		if (properties.fromPlayer) this.body.label = "f";
+		else this.body.label = "e";
+
+		// Listen to the engine right before updates are calculated
+		Matter.Events.on(runningPhysicsEngine, 'beforeUpdate', () => {
+			const gravity = runningPhysicsEngine.gravity;
+			Matter.Body.applyForce(this.body, this.body.position, {
+				x: -gravity.x * gravity.scale * this.body.mass,
+				y: -gravity.y * gravity.scale * this.body.mass
+			});
+		});
 	}
 
 	update(ticker: Ticker) {

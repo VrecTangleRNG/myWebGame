@@ -22,6 +22,7 @@ export class Enemy {
 	private aimTime: number;
 	private currentAimTime: number = 0;
 	private targetX: number;
+	private targetY: number;
 	private xVelocity: number;
 	private isAlive: boolean;
 
@@ -45,9 +46,10 @@ export class Enemy {
 		this.sprite.anchor.set(0.5);
 		this.app.stage.addChild(this.sprite);
 
+		this.targetY = spawnY - this.sprite.height / 2;
 		this.body = Matter.Bodies.rectangle(
 			spawnX + this.sprite.width / 2 + 4,
-			spawnY - this.sprite.height / 2,
+			this.targetY,
 			this.sprite.width,
 			this.sprite.height, {
 				isSensor: true,
@@ -111,7 +113,6 @@ export class Enemy {
 			if (this.health <= 0) {
 				enemySignals.emit("enemyKilled", bulletBody);
 				Matter.Body.setStatic(this.body, true);
-				this.body.collisionFilter.mask = 3;
 				this.jumpAndDie.start();
 				this.rotateEnemy.start();
 				this.isAlive = false;
@@ -153,6 +154,12 @@ export class Enemy {
 					this.currentAimTime = 0;
 				}
 			}
+
+			// Never effect gravity to the body
+			Matter.Body.setPosition(
+				this.body,
+				{ x: this.body.position.x, y: this.targetY}
+			);
 		}
 		else {
 			this.jumpAndDie.update();
