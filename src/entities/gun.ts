@@ -1,10 +1,12 @@
 import { Application, Sprite, Ticker, Graphics, GraphicsContext } from 'pixi.js';
 import { Tween, Easing } from '@tweenjs/tween.js';
 import { yoyo } from './../systems/utils';
+import Matter from 'matter-js';
 
 import { ShotType, BulletContainer } from './bullet';
 import { onPointerDown } from '../systems/inputs';
-import { playerSignals } from '../systems/events';
+import { gunSignals, playerSignals } from '../systems/events';
+import { runningPhysicsEngine } from '../state/list/gameplay';
 
 
 export class Gun {
@@ -12,6 +14,7 @@ export class Gun {
 	// Gun properties
 	public sprite: Sprite;
 	public magazine: BulletContainer;
+	public body: Matter.Body;
 	private ownedByPlayer: boolean;
 	private aimingMovement: Tween;
 	private aimSpeed: number;
@@ -21,6 +24,8 @@ export class Gun {
 	private shootingAnimation: Tween;
 	private recoil: number;
 	private currentRecoilTime: number = 0;
+	private isThrown: boolean = false;
+	private isForceApplied: boolean = false;
 
 	// Pointer line and marker
 	private pointerLine: Graphics;
@@ -42,6 +47,13 @@ export class Gun {
 		this.sprite.anchor.set(0, 0.2);
 
 		app.stage.addChild(this.sprite);
+
+		this.body = Matter.Bodies.rectangle(
+			0, 0,
+			this.sprite.width, this.sprite.height,
+			{ isSensor: true,  label: "gun" }
+		);
+		Matter.Composite.add(runningPhysicsEngine.world, this.body);
 
 		// TODO: Make this customizable later
 		this.bulletSize = 1.5;
@@ -75,12 +87,39 @@ export class Gun {
 			this.pointerLine.zIndex = 9;
 		}
 
+		// Events
 		onPointerDown(() => {
 			this.aimingMovement.pause();
 		});
+		gunSignals.on("throwGun", (arg) => {
+			if (arg.body === this.body) {
+				this.isThrown = true;
+
+				Matter.Events.on(runningPhysicsEngine, "beforeUpdate", () => {
+					if (!this.isForceApplied) {
+						Matter.Body.applyForce(
+							this.body, {
+								x: Math.random() *
+									this.body.position.x +
+									this.sprite.width,
+								y: this.body.position.y
+							}, {
+								x: (Math.random() - 0.5) * 0.1,
+								y: -Math.random() * 0.3
+							}
+							
+						);
+						this.isForceApplied = true;
+					}
+				});
+				
+				this.pointerLine.alpha = 0;
+				this.markerPointer.alpha = 0;
+			}
+		});
 	}
 
-	update(ticker: Ticker): void {
+	public update(ticker: Ticker): void {
 		if (this.ownedByPlayer) {
 			let radians = this.sprite.angle * Math.PI / 180;
 
@@ -124,5 +163,24 @@ export class Gun {
 			this.sprite.x,
 			this.sprite.y
 		);
+
+		if (this.isThrown) {
+			Matter.Body.setStatic(this.body, false);
+			this.pointerLine.alpha = 0;
+			this.markerPointer.alpha = 0;
+			this.sprite.x = this.body.position.x;
+			this.sprite.y = this.body.position.y;
+			this.sprite.angle = (this.sprite.scale.y >= 1) ?
+				this.body.angle * 180 / Math.PI :
+				this.body.angle * 180 / Math.PI + 180;
+		}
+		else {
+			Matter.Body.setStatic(this.body, true);
+			Matter.Body.setPosition(this.body, {
+				x: this.sprite.x,
+				y: this.sprite.y,
+			});
+		}
+		
 	}
 }

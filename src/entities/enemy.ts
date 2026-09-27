@@ -2,7 +2,7 @@ import { Application, Sprite, Ticker } from "pixi.js";
 import Matter from "matter-js";
 import { Tween, Easing } from "@tweenjs/tween.js";
 
-import { enemySignals } from "../systems/events";
+import { enemySignals, gunSignals } from "../systems/events";
 import { Gun } from "./gun";
 import {
 	runningPhysicsEngine,
@@ -25,6 +25,7 @@ export class Enemy {
 	private targetY: number;
 	private xVelocity: number;
 	private isAlive: boolean;
+	private isHoldingGun: boolean = true;
 
 	private bodyCopy: { y: number, rad: number };
 	private jumpAndDie: Tween;
@@ -97,6 +98,13 @@ export class Enemy {
 			.onComplete(() => {
 				this.aimingAnimation.pause();
 			});
+
+		// Events
+		gunSignals.on("throwGun", (arg) => {
+			if (arg === this.gun) {
+				this.isHoldingGun = false;
+			}
+		});
 	}
 
 	private checkCollision() {
@@ -112,6 +120,7 @@ export class Enemy {
 			this.health -= 2;
 			if (this.health <= 0) {
 				enemySignals.emit("enemyKilled", bulletBody);
+				gunSignals.emit("throwGun", this.gun);
 				Matter.Body.setStatic(this.body, true);
 				this.jumpAndDie.start();
 				this.rotateEnemy.start();
@@ -173,8 +182,14 @@ export class Enemy {
 		}
 
 		// Match body and gun visual with physics calculations
-		this.sprite.x = this.gun.sprite.x = this.body.position.x;
-		this.sprite.y = this.gun.sprite.y = this.body.position.y;
+		if (this.isHoldingGun) {
+			this.sprite.x = this.gun.sprite.x = this.body.position.x;
+			this.sprite.y = this.gun.sprite.y = this.body.position.y;
+		}
+		else {
+			this.sprite.x = this.body.position.x;
+			this.sprite.y = this.body.position.y;
+		}
 		this.sprite.angle = this.body.angle * 180 / Math.PI;
 	}
 }

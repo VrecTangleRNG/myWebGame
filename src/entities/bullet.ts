@@ -48,7 +48,7 @@ export class BulletContainer {
 
 		if (fromPlayer) {
 			Input.onPointerDown(() => {
-				this.fireBullet();
+				if (this.ableToShoot) this.fireBullet();
 			});
 
 			// Delete player bullets when receiving the signal from enemies
@@ -73,12 +73,10 @@ export class BulletContainer {
 	}
 
 	public fireBullet(): void {
-		if (this.ableToShoot) {
-			let bullet: Bullet = new Bullet(this.properties);
-			this.bulletSprites.push(bullet);
-			this.bulletBodies.push(bullet.body);
-			this.ableToShoot = false;
-		}
+		let bullet: Bullet = new Bullet(this.properties);
+		this.bulletSprites.push(bullet);
+		this.bulletBodies.push(bullet.body);
+		this.ableToShoot = false;
 	}
 
 	public getFlyingBullets() {

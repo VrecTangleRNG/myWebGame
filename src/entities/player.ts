@@ -4,7 +4,7 @@ import { Tween, Easing } from '@tweenjs/tween.js';
 
 import { Gun } from './gun';
 import { runningPhysicsEngine } from '../state/list/gameplay';
-import { playerSignals } from '../systems/events';
+import { gunSignals, playerSignals } from '../systems/events';
 
 
 export class Player {
@@ -18,7 +18,7 @@ export class Player {
 	private jump: Tween;
 	private fallOffScreen: Tween;
 	private rotate: Tween;
-	private animationDuration: number = 1000;
+	private animationDuration: number = 1500;
 
 	constructor(app: Application) {
 		this.sprite = Sprite.from("player");
@@ -88,8 +88,11 @@ export class Player {
 
 					playerSignals.emit("hurt", collidingBody);
 					this.health -= 1;
+
+					// Check if dead
 					if (this.health <= 0) {
 						playerSignals.emit("dead", null);
+						gunSignals.emit("throwGun", this.gun);
 						this.jump.start();
 						this.rotate.start();
 					}
