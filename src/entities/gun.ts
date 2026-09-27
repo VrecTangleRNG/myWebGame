@@ -3,6 +3,8 @@ import { Tween, Easing } from '@tweenjs/tween.js';
 import { yoyo } from './../systems/utils';
 
 import { ShotType, BulletContainer } from './bullet';
+import { onPointerDown } from '../systems/inputs';
+import { playerSignals } from '../systems/events';
 
 
 export class Gun {
@@ -16,7 +18,11 @@ export class Gun {
 	private bulletSize: number;
 	private bulletSpeed: number;
 	private shotType: ShotType;
+	private shootingAnimation: Tween;
+	private recoil: number;
+	private currentRecoilTime: number = 0;
 
+	// Pointer line and marker
 	private pointerLine: Graphics;
 	private pointerContext: GraphicsContext;
 	private markerPointer: Graphics;
@@ -48,6 +54,7 @@ export class Gun {
 			fromPlayer
 		)
 		this.ownedByPlayer = fromPlayer;
+		this.recoil = 350;
 
 		this.aimSpeed = aimSpeed ? aimSpeed : 0;
 		this.aimingMovement = new Tween(this.sprite)
@@ -67,27 +74,48 @@ export class Gun {
 			this.markerPointer.zIndex = 9;
 			this.pointerLine.zIndex = 9;
 		}
+
+		onPointerDown(() => {
+			this.aimingMovement.pause();
+		});
 	}
 
 	update(ticker: Ticker): void {
 		if (this.ownedByPlayer) {
 			let radians = this.sprite.angle * Math.PI / 180;
+
+			if (this.aimingMovement.isPaused()) {
+				this.currentRecoilTime += ticker.deltaMS;
+				this.pointerLine.alpha = 0;
+				this.markerPointer.alpha = this.currentRecoilTime / this.recoil;
+
+				if (this.currentRecoilTime >= this.recoil) {
+					this.currentRecoilTime = 0;
+					playerSignals.emit("readyToFire", null);
+					this.aimingMovement.resume();
+				}
+			}
+
+			else {
+				this.pointerLine.alpha = 1;
+				this.markerPointer.alpha = 1;
+				this.markerContext.clear()
+					.moveTo(this.sprite.x, this.sprite.y)
+					.arc(
+						this.sprite.x, this.sprite.y,
+						this.lineLength, 0,
+						radians, true
+					)
+					.fill({ color: 0xFFFFFF, alpha: 0.3});
+				this.pointerContext.clear()
+					.moveTo(this.sprite.x, this.sprite.y)
+					.lineTo(
+						this.sprite.x + this.lineLength * Math.cos(radians),
+						this.sprite.y + this.lineLength * Math.sin(radians)
+					)
+					.stroke({ width: 2, color: 0xFFFFFF });
+			}
 			this.aimingMovement.update();
-			this.markerContext.clear()
-				.moveTo(this.sprite.x, this.sprite.y)
-				.arc(
-					this.sprite.x, this.sprite.y,
-					this.lineLength, 0,
-					radians, true
-				)
-				.fill({ color: 0xFFFFFF, alpha: 0.3});
-			this.pointerContext.clear()
-				.moveTo(this.sprite.x, this.sprite.y)
-				.lineTo(
-					this.sprite.x + this.lineLength * Math.cos(radians),
-					this.sprite.y + this.lineLength * Math.sin(radians)
-				)
-				.stroke({ width: 2, color: 0xFFFFFF });
 		}
 
 		this.magazine.update(

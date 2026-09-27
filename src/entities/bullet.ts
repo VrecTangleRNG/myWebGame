@@ -25,6 +25,7 @@ export class BulletContainer {
 	private properties: BulletProperties;
 	private bulletSprites: Bullet[] = [];
 	private bulletBodies: Matter.Body[] = [];
+	private ableToShoot: boolean = true;
 
 	constructor(
 		app: Application,
@@ -50,14 +51,19 @@ export class BulletContainer {
 				this.fireBullet();
 			});
 
-			// Signals handling (for bullets owned by player)
+			// Delete player bullets when receiving the signal from enemies
 			enemySignals.on("enemyKilled", (arg) => {
 				let index = this.bulletBodies.indexOf(arg);
 				if (index >= 0) this.bulletSprites[index].isBulletFlying = false;
 			});
+
+			// Recoil
+			playerSignals.on("readyToFire", () => {
+				this.ableToShoot = true;
+			});
 		}
 
-		// Signals handling for bullets owned by enemies
+		// Delete enemy bullet when receiving the signal from player
 		else {
 			playerSignals.on("hurt", (arg) => {
 				let index = this.bulletBodies.indexOf(arg);
@@ -67,9 +73,12 @@ export class BulletContainer {
 	}
 
 	public fireBullet(): void {
-		let bullet: Bullet = new Bullet(this.properties);
-		this.bulletSprites.push(bullet);
-		this.bulletBodies.push(bullet.body);
+		if (this.ableToShoot) {
+			let bullet: Bullet = new Bullet(this.properties);
+			this.bulletSprites.push(bullet);
+			this.bulletBodies.push(bullet.body);
+			this.ableToShoot = false;
+		}
 	}
 
 	public getFlyingBullets() {
@@ -135,7 +144,7 @@ class Bullet {
 		if (properties.fromPlayer) this.body.label = "f";
 		else this.body.label = "e";
 
-		// Listen to the engine right before updates are calculated
+		// Cancel gravity
 		Matter.Events.on(runningPhysicsEngine, 'beforeUpdate', () => {
 			const gravity = runningPhysicsEngine.gravity;
 			Matter.Body.applyForce(this.body, this.body.position, {
@@ -145,7 +154,7 @@ class Bullet {
 		});
 	}
 
-	update(ticker: Ticker) {
+	public update(ticker: Ticker) {
 		let radians = this.properties.angle * Math.PI / 180;
 		Matter.Body.setVelocity(this.body, {
 			x: Math.cos(radians) * this.properties.speed,
