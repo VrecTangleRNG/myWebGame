@@ -2,7 +2,7 @@ import { Application, Sprite, Ticker } from "pixi.js";
 import Matter from "matter-js";
 import { Tween, Easing } from "@tweenjs/tween.js";
 
-import { enemySignals, gunSignals } from "../systems/events";
+import { enemySignals, gunSignals, playerSignals } from "../systems/events";
 import { Gun } from "./gun";
 import {
 	runningPhysicsEngine,
@@ -26,6 +26,7 @@ export class Enemy {
 	private xVelocity: number;
 	private isAlive: boolean;
 	private isHoldingGun: boolean = true;
+	private ableToShoot: boolean = true;
 
 	private bodyCopy: { y: number, rad: number };
 	private jumpAndDie: Tween;
@@ -105,6 +106,9 @@ export class Enemy {
 				this.isHoldingGun = false;
 			}
 		});
+		playerSignals.on("dead", () => {
+			this.ableToShoot = false;
+		});
 	}
 
 	private checkCollision() {
@@ -133,7 +137,6 @@ export class Enemy {
 
 		// Move to target if still alive
 		this.aimingAnimation.update();
-		this.gun.update(ticker);
 		if (this.isAlive) {
 			this.checkCollision();
 			if (this.body.position.x > this.targetX) {
@@ -158,7 +161,7 @@ export class Enemy {
 				}
 
 				this.currentAimTime += ticker.deltaMS;
-				if (this.currentAimTime >= this.aimTime) {
+				if (this.currentAimTime >= this.aimTime && this.ableToShoot) {
 					this.gun.magazine.fireBullet();
 					this.currentAimTime = 0;
 				}
@@ -191,5 +194,6 @@ export class Enemy {
 			this.sprite.y = this.body.position.y;
 		}
 		this.sprite.angle = this.body.angle * 180 / Math.PI;
+		this.gun.update(ticker);
 	}
 }

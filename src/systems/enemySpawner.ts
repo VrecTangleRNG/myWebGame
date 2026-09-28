@@ -1,6 +1,7 @@
 import { Application, Ticker } from "pixi.js";
 
 import { Enemy } from "../entities/enemy";
+import { playerSignals } from "./events";
 
 
 export enum SpawnMode {
@@ -15,6 +16,7 @@ export class EnemySpawner {
 	private spawnPoints: { x: number, y: number }[] = [];
 	private targetX: number[] = [];
 	private enemies: Enemy[] = [];
+	private ableToSpawn: boolean = true;
 
 	constructor(app: Application, mode: SpawnMode) {
 		this.app = app;
@@ -44,11 +46,16 @@ export class EnemySpawner {
 				break;
 			default: break;
 		}
+
+		// Events
+		playerSignals.on("dead", () => {
+			this.ableToSpawn = false;
+		});
 	}
 
 	update(ticker: Ticker) {
 		this.currentSpawnDuration += ticker.deltaMS / 1000;
-		if (this.currentSpawnDuration >= this.spawnRate) {
+		if (this.currentSpawnDuration >= this.spawnRate && this.ableToSpawn) {
 			let randomY = Math.floor(Math.random() * this.spawnPoints.length);
 			let randomTargetX = Math.floor(Math.random() * this.targetX.length);
 			let enemy = new Enemy(

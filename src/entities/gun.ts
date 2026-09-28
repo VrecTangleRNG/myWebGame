@@ -24,8 +24,8 @@ export class Gun {
 	private shootingAnimation: Tween;
 	private recoil: number;
 	private currentRecoilTime: number = 0;
-	private isThrown: boolean = false;
-	private isForceApplied: boolean = false;
+	private isThrown: boolean;
+	private isForceApplied: boolean;
 
 	// Pointer line and marker
 	private pointerLine: Graphics;
@@ -67,6 +67,8 @@ export class Gun {
 		)
 		this.ownedByPlayer = fromPlayer;
 		this.recoil = 350;
+		this.isThrown = false;
+		this.isForceApplied = false;
 
 		this.aimSpeed = aimSpeed ? aimSpeed : 0;
 		this.aimingMovement = new Tween(this.sprite)
@@ -105,7 +107,7 @@ export class Gun {
 								y: this.body.position.y
 							}, {
 								x: (Math.random() - 0.5) * 0.1,
-								y: -Math.random() * 0.3
+								y: -Math.random() * 0.1
 							}
 							
 						);
