@@ -10,11 +10,11 @@ export interface State {
 }
 
 export class StateMachine {
+	private states: State[] = [];
+
 	constructor(initialState: State) {
 		this.push(initialState);
 	}
-
-	private states: State[] = [];
 
 	private push(state: State) {
 		this.states.push(state);
@@ -22,14 +22,14 @@ export class StateMachine {
 	}
 	
 	private pop() {
-		this.states[this.states.length - 1].exit();
-		return this.states.pop();
+		this.states.pop();
 	}
 
 	run(ticker: Ticker) {
 		if (!this.states[this.states.length - 1].update(ticker)) {
-			this.push(this.states[this.states.length - 1].exit());
+			const buffer = this.states[this.states.length - 1].exit();
 			this.pop();
+			this.push(buffer);
 		}
 	}
 }

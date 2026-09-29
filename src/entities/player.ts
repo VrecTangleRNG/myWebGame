@@ -10,7 +10,7 @@ import { gunSignals, playerSignals } from '../systems/events';
 export class Player {
 	public sprite: Sprite;
 	public gun: Gun;
-	public health: number = 20;
+	public health: number = 1;
 	private app: Application;
 	private body: Matter.Body;
 	private bodyCopy: { x: number, y: number, rad: number };
@@ -75,8 +75,6 @@ export class Player {
 		// Collision events
 		Matter.Events.on(runningPhysicsEngine, "collisionStart", (event) => {
 			let pairs = event.pairs;
-
-			console.log(pairs);
 			pairs.forEach((pair) => {
 				if (
 					(pair.bodyA.label === "fp" || pair.bodyB.label === "fp") &&

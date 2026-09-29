@@ -6,6 +6,8 @@ import { Player } from "../../entities/player";
 import { EnemySpawner, SpawnMode } from "../../systems/enemySpawner";
 import { enemySignals } from "../../systems/events";
 
+import { gameoverState } from "./gameover";
+
 
 export let runningPhysicsEngine: Matter.Engine;
 export let runningPlayer: Player;
@@ -23,6 +25,7 @@ export class GameplayState implements State {
 	private scoreText: Text;			// TODO: Substitute with BitmapText later
 	private hpText: Text;				// TODO: Substitute with BitmapText later
 	private score: number = 0;
+	private waitTIme: number = 2500;
 
 	constructor(app: Application) {
 		this.app = app;
@@ -48,7 +51,7 @@ export class GameplayState implements State {
 
 		// Text rendering
 		this.textStyle = new TextStyle({
-			fontFamily: "Pacifico",
+			fontFamily: "Rationale",
 			fontSize: 36,
 			fill: 0x111111
 		});
@@ -56,6 +59,8 @@ export class GameplayState implements State {
 		this.hpText = new Text({ text: "HP: 20", style: this.textStyle, y: 44});
 		this.app.stage.addChild(this.scoreText);
 		this.app.stage.addChild(this.hpText);
+
+		// Events
 		enemySignals.on("enemyKilled", () => {
 			this.score += 10;
 			this.scoreText.text = `score: ${this.score}`;
@@ -72,10 +77,16 @@ export class GameplayState implements State {
 		this.enemySpawner.update(ticker);
 		this.player.update(ticker);
 		this.hpText.text = `HP: ${this.player.health}`;
+
+		if (this.player.health <= 0) {
+			this.waitTIme -= ticker.deltaMS;
+			if (this.waitTIme <= 0) return false;
+		}
 		return true;
 	}
 
 	exit(): State {
-		return;
+		console.log("check");
+		return new gameoverState(this.app);
 	}
 }
