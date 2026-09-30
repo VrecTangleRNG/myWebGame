@@ -73,6 +73,7 @@ export class Player {
 		this.gun.sprite.angle = 0;
 
 		// Collision events
+		// TODO: never rely on runningPhysicsEngine since it needs a physics engine
 		Matter.Events.on(runningPhysicsEngine, "collisionStart", (event) => {
 			let pairs = event.pairs;
 			pairs.forEach((pair) => {
@@ -115,5 +116,10 @@ export class Player {
 		this.sprite.x = this.body.position.x;
 		this.sprite.y = this.body.position.y;
 		this.sprite.angle = this.body.angle * 180 / Math.PI;
+	}
+
+	public clear() {
+		this.sprite.destroy({ children: true });
+		this.gun.clear();
 	}
 }

@@ -23,9 +23,9 @@ type BulletProperties = {
 
 export class BulletContainer {
 	private properties: BulletProperties;
-	private bulletSprites: Bullet[] = [];
-	private bulletBodies: Matter.Body[] = [];
-	private ableToShoot: boolean = true;
+	private bulletSprites: Bullet[];
+	private bulletBodies: Matter.Body[];
+	private ableToShoot: boolean;
 
 	constructor(
 		app: Application,
@@ -45,6 +45,9 @@ export class BulletContainer {
 			type: type,
 			fromPlayer: fromPlayer
 		};
+		this.bulletBodies = [];
+		this.bulletSprites = [];
+		this.ableToShoot = true;
 
 		if (fromPlayer) {
 			Input.onPointerDown(() => {
@@ -112,6 +115,13 @@ export class BulletContainer {
 			this.bulletSprites.splice(index, 1);
 			this.bulletBodies.splice(index, 1);
 		});
+	}
+
+	public clear() {
+		this.bulletSprites.forEach((bullet) => {
+			bullet.sprite.destroy({ children: true });
+		});
+		this.ableToShoot = false;
 	}
 }
 

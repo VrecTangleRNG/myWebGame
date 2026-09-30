@@ -1,9 +1,10 @@
-import { Application, Ticker } from 'pixi.js';
+import { Application, Container, Ticker } from 'pixi.js';
 
 
 export interface State {
 	name: string;
 	app: Application;
+	container: Container;
 	enter(): void;
 	update(ticker: Ticker): boolean;
 	exit(): State;

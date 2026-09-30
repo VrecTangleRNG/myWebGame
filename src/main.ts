@@ -2,8 +2,8 @@ import { Application } from "pixi.js";
 import { StateMachine } from './state/machine';
 import * as Input from './systems/inputs';
 import * as AssetsManager from './systems/assets';
+import { MainmenuState } from "./state/list/mainmenu";
 
-import { GameplayState } from './state/list/gameplay';
 
 
 async function main(): Promise<void> {
@@ -22,7 +22,7 @@ async function main(): Promise<void> {
 
 	// Game Loop and State Machine
 	Input.initialize(app);
-	const stateMachine = new StateMachine(new GameplayState(app));
+	const stateMachine = new StateMachine(new MainmenuState(app));
 	app.ticker.add((ticker) => {
 		stateMachine.run(ticker);
 	});

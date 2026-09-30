@@ -1,9 +1,10 @@
 import { Application, Container, Sprite, Ticker } from "pixi.js";
 
 import { State } from './../machine';
+import { MainmenuState } from "./mainmenu";
 
 
-export class gameoverState implements State {
+export class GameoverState implements State {
 	name = "gameover";
 	app: Application;
 	container: Container;
@@ -11,7 +12,6 @@ export class gameoverState implements State {
 	private gameoverBanner: Sprite;
 	private backButton: Sprite;
 	private reviewButton: Sprite;
-	private toReviewPage: boolean = false;
 	private toMainMenu: boolean = false;
 
 	constructor(app: Application) {
@@ -43,7 +43,6 @@ export class gameoverState implements State {
 		this.backButton.cursor = "pointer";
 		this.backButton.on("pointertap", () => {
 			this.toMainMenu = true;
-			console.log("this was clicked!");
 		});
 
 		this.reviewButton.anchor.set(0.5);
@@ -52,17 +51,17 @@ export class gameoverState implements State {
 		this.reviewButton.eventMode = "static";
 		this.reviewButton.cursor = "pointer";
 		this.reviewButton.on("pointertap", () => {
-			this.toReviewPage = true;
-			console.log("this was clicked too!");
+			window.open("https://google.com", "_blank");
 		});
 	}
 
 	update(ticker: Ticker): boolean {
-		if (this.toMainMenu || this.toReviewPage) return true;
+		if (this.toMainMenu) return false;
 		return true;
 	}
 
 	exit(): State {
-		return;
+		this.app.stage.removeChild(this.container);
+		return new MainmenuState(this.app);
 	}
 }

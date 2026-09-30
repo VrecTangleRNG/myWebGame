@@ -1,12 +1,12 @@
-import { Application, Sprite, Ticker, Text, TextStyle } from "pixi.js";
+import { Application, Sprite, Ticker, Text, TextStyle, Container } from "pixi.js";
 import { State } from './../machine';
 import Matter from "matter-js";
 
-import { Player } from "../../entities/player";
 import { EnemySpawner, SpawnMode } from "../../systems/enemySpawner";
 import { enemySignals } from "../../systems/events";
 
-import { gameoverState } from "./gameover";
+import { GameoverState } from "./gameover";
+import { Player } from "../../entities/player";
 
 
 export let runningPhysicsEngine: Matter.Engine;
@@ -15,9 +15,9 @@ export let runningPlayer: Player;
 export class GameplayState implements State {
 	name = "gameplay";
 	app: Application;
+	container: Container = new Container;
 
 	private player: Player;
-	private background: Sprite;
 	private enemySpawner: EnemySpawner;
 	private physicsEngine: Matter.Engine;
 
@@ -38,20 +38,15 @@ export class GameplayState implements State {
 		});
 		runningPhysicsEngine = this.physicsEngine;
 
-		// Player initializations
+		// Player
 		this.player = new Player(app);
 		runningPlayer = this.player;
-
-		// Background
-		this.background = Sprite.from("background");
-		this.app.stage.addChild(this.background);
 
 		// Enemy spawning
 		this.enemySpawner = new EnemySpawner(app, SpawnMode.Normal);
 
 		// Text rendering
 		this.textStyle = new TextStyle({
-			fontFamily: "Rationale",
 			fontSize: 36,
 			fill: 0x111111
 		});
@@ -69,7 +64,6 @@ export class GameplayState implements State {
 
 	enter(): void {
 		this.player.init();
-		this.background.zIndex = 0;
 	}
 
 	update(ticker: Ticker): boolean {
@@ -86,7 +80,12 @@ export class GameplayState implements State {
 	}
 
 	exit(): State {
-		console.log("check");
-		return new gameoverState(this.app);
+		this.enemySpawner.clearEnemies();
+		this.player.clear();
+
+		Matter.Events.off(this.physicsEngine);
+		Matter.World.clear(this.physicsEngine.world, false);
+		Matter.Engine.clear(this.physicsEngine);
+		return new GameoverState(this.app);
 	}
 }

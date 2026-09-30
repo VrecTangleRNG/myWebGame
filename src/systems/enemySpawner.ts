@@ -74,7 +74,14 @@ export class EnemySpawner {
 		}
 	}
 
-	getEnemyList() {
+	public getEnemyList(): Enemy[] {
 		return this.enemies;
+	}
+
+	public clearEnemies() {
+		this.enemies.forEach((enemy, index) => {
+			if (enemy) enemy.destroy();
+		});
+		this.enemies = [];
 	}
 }

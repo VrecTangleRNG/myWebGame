@@ -183,6 +183,10 @@ export class Gun {
 				y: this.sprite.y,
 			});
 		}
-		
+	}
+
+	public clear() {
+		this.sprite.destroy({ children: true });
+		this.magazine.clear();
 	}
 }

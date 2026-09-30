@@ -196,4 +196,9 @@ export class Enemy {
 		this.sprite.angle = this.body.angle * 180 / Math.PI;
 		this.gun.update(ticker);
 	}
+
+	public destroy() {
+		this.sprite.destroy({ children: true });
+		this.gun.clear();
+	}
 }
